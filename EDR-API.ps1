@@ -32,24 +32,6 @@ add-type @"
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 #################################################################################################
 
-
-function get-EdrAccessToken(
-        [string]$EDRrootAddress, 
-        [string]$client_id, 
-        [string]$client_secret
-){
-    $credText = $client_id + ":" + $client_secret
-    $encodedCred = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($credText))
-    $headers = @{
-        Accept = 'application/json';
-        Authorization = "Basic $encodedCred";
-        'Content-Type' = 'application/x-www-form-urlencoded';
-    }
-    $body = 'grant_type=client_credentials&scope=customer'
-    return ((Invoke-RestMethod -Uri "$EDR_Address/atpapi/oauth2/tokens" -Method Post -Headers $headers -Body $body).access_token)
-}
-
-
 function ConvertTo-Base64(
         [string]$text
 ){
@@ -62,6 +44,24 @@ function ConvertFrom-Base64(
 ){
     return [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($text))
 }
+
+
+function get-EdrAccessToken(
+        [string]$EDRrootAddress, 
+        [string]$client_id, 
+        [string]$client_secret
+){
+    $credText = $client_id + ":" + $client_secret
+    $encodedCred = ConvertTo-Base64($credText)
+    $headers = @{
+        Accept = 'application/json';
+        Authorization = "Basic $encodedCred";
+        'Content-Type' = 'application/x-www-form-urlencoded';
+    }
+    $body = 'grant_type=client_credentials&scope=customer'
+    return ((Invoke-RestMethod -Uri "$EDR_Address/atpapi/oauth2/tokens" -Method Post -Headers $headers -Body $body).access_token)
+}
+
 
 #################################################################################################
 
