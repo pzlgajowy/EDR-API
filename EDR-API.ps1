@@ -1,6 +1,6 @@
 
 #################################################################################################
-# This scritp is in test stage. Before you run it chceck and correct the source code.
+# This scritpt is in test stage. Before you run it chceck and correct the source code.
 # 
 #                           YOU'RE USING IT AT YOUR OWN RISK.
 # 
@@ -48,6 +48,21 @@ function get-EdrAccessToken(
     $body = 'grant_type=client_credentials&scope=customer'
     return ((Invoke-RestMethod -Uri "$EDR_Address/atpapi/oauth2/tokens" -Method Post -Headers $headers -Body $body).access_token)
 }
+
+
+function ConvertTo-Base64(
+        [string]$text
+){
+    return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($text))
+}
+
+
+function ConvertFrom-Base64(
+        [string]$text
+){
+    return [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($text))
+}
+
 #################################################################################################
 
 
@@ -69,8 +84,8 @@ $headers = @{
     Authorization = "Bearer $token"
     'Content-Type' = 'application/json'  
 }
-
 $response = Invoke-WebRequest -Uri "$EDR_Address/atpapi/v2/policies/deny_list" -Method Get -Headers $headers
+
 $a = ($response.Content | ConvertFrom-Json) #.result[1]
 
 [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($a.next))
@@ -86,7 +101,7 @@ $a.result  |
     }
 
 
-CLEAR 
+clear 
 #################################################################################################
 # Create Blacklist Policies
 # POST /atpapi/v2/policies/blacklist
@@ -138,6 +153,6 @@ $headers = @{
 
 $policy_id = "3"
 
-$response = Invoke-WebRequest -Uri "$EDR_Address/atpapi/v2/policies/deny_list/$policy_id" -Method DELETE -Headers $headers
+$responseDEL = Invoke-WebRequest -Uri "$EDR_Address/atpapi/v2/policies/deny_list/$policy_id" -Method DELETE -Headers $headers
 
-$response.RawContent
+$responseDEL.RawContent
