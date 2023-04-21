@@ -47,9 +47,6 @@ function Get-TimeStamp()
 function get-EdrAccessToken(
         [string]$EDRrootAddress, 
         $credentials
-<#        [string]$client_id, 
-        [string]$client_secret
-#>
 ){
     $credText = $credentials.client_id + ":" + $credentials.client_secret
     $encodedCred = ConvertTo-Base64($credText)
