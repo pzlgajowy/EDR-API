@@ -32,26 +32,26 @@ add-type @"
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 #################################################################################################
 
-function ConvertTo-Base64(
-        [string]$text
-){
-    return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($text))
-}
+function ConvertTo-Base64([string]$text)
+    {return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($text))}
 
 
-function ConvertFrom-Base64(
-        [string]$text
-){
-    return [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($text))
-}
+function ConvertFrom-Base64([string]$text)
+    {return [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($text))}
+
+
+function Get-TimeStamp()
+    {return (Get-Date -Format "yyyyMMddHHmm")}
 
 
 function get-EdrAccessToken(
         [string]$EDRrootAddress, 
-        [string]$client_id, 
+        $credentials
+<#        [string]$client_id, 
         [string]$client_secret
+#>
 ){
-    $credText = $client_id + ":" + $client_secret
+    $credText = $credentials.client_id + ":" + $credentials.client_secret
     $encodedCred = ConvertTo-Base64($credText)
     $headers = @{
         Accept = 'application/json';
@@ -77,7 +77,7 @@ function get-EdrAccessToken(
     --header "Content-Type: application/json" 
 #>
 
-$token = get-EdrAccessToken -EDRrootAddress $EDR_Address -client_id $cred.client_id -client_secret $cred.client_secret
+$token = get-EdrAccessToken -EDRrootAddress $EDR_Address -credentials $cred
 
 
 $headers = @{
@@ -90,7 +90,7 @@ $a = ($response.Content | ConvertFrom-Json) #.result[1]
 
 [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($a.next))
 
-$a.result | ConvertTo-Json | Out-File "$env:USERPROFILE\Documents\Windows PowerShell\temp\EDR_deny_list_policy.json"
+$a.result | ConvertTo-Json | Out-File "$env:USERPROFILE\Documents\Windows PowerShell\temp\EDR_deny_list_policy_" + (Get-TimeStamp) + ".json"
 $a.result  | 
 %{
     write ""
