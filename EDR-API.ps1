@@ -95,7 +95,7 @@ $response = Invoke-WebRequest -Uri "$EDR_Address/atpapi/v2/policies/deny_list" -
 
 $a = ($response.Content | ConvertFrom-Json) #.result[1]
 
-[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($a.next))
+ConvertFrom-Base64($a.next)
 
 $a.result | ConvertTo-Json | Out-File "$env:USERPROFILE\Documents\Windows PowerShell\SymantecEDR\EDR_deny_list_policy_" + (Get-TimeStamp) + ".json"
 $a.result  | 
