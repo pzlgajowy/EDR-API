@@ -8,16 +8,11 @@
 #        security-and-management/endpoint-detection-and-response/generated-pdfs/EDR_API_Legacy.pdf
 #################################################################################################
 
-$EDR_Address = "https://192.168.1.1"
-$cred = @{
-    client_id = 'O2ID.atp-customer.atp-domain.0123456789abcdef0123456789'
-    client_secret = '0123456789abcdef0123456789abcdef012'
-} 
-
-
 #################################################################################################
 #                           bypass SSL/TLS certificate checks
 #################################################################################################
+
+<#
 add-type @"
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
@@ -30,6 +25,8 @@ add-type @"
     }
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+#>
+
 #################################################################################################
 
 function ConvertTo-Base64([string]$text)
@@ -45,10 +42,11 @@ function Get-TimeStamp()
 
 
 function get-EdrAccessToken(
-        [string]$EDRrootAddress, 
-        $credentials
+        [string]$EDR_API_config
 ){
-    $credText = $credentials.client_id + ":" + $credentials.client_secret
+    $EDR_Address = $EDR_APIconfig.EDR_APIroot
+
+    $credText = $EDR_APIconfig.Client_ID + ":" + $EDR_APIconfig.Client_Secret
     $encodedCred = ConvertTo-Base64($credText)
     $headers = @{
         Accept = 'application/json';
@@ -64,18 +62,30 @@ function get-EdrAccessToken(
 
 
 #################################################################################################
-#                                     USAGE
+#                                     TEMPLATES
 #################################################################################################
 
-
+# initial variables
 <#
-    curl --request GET "https://192.168.1.15/atpapi/v2/policies/deny_list" \
-    --header "Authorization: Bearer  {bearer token}" \
-    --header "Content-Type: application/json" 
+$EDR_APIconfig_Path = "$env:USERPROFILE\Documents\Windows PowerShell\SymantecEDR\EDR2_APIconfig.json" #TEST env
 #>
 
-$token = get-EdrAccessToken -EDRrootAddress $EDR_Address -credentials $cred
+$EDR_APIconfig_Path = "$env:USERPROFILE\Documents\Windows PowerShell\SymantecEDR\EDR_APIconfig.json"
+$EDR_APIconfig = Get-Content $EDR_APIconfig_Path | ConvertFrom-Json
+$EDR_Address = $EDR_APIconfig.EDR_APIroot
 
+
+#################################################################################################
+#################################################################################################
+# Get Blacklist Policies
+# GET /atpapi/v2/policies/blacklist
+# 
+# curl --request GET "https://192.168.1.15/atpapi/v2/policies/deny_list" \
+# --header "Authorization: Bearer  {bearer token}" \
+# --header "Content-Type: application/json" 
+# 
+
+$token = get-EdrAccessToken -EDR_API_config $EDR_APIconfig
 
 $headers = @{
     Authorization = "Bearer $token"
@@ -112,7 +122,7 @@ clear
 #>
 
 
-$token = get-EdrAccessToken -EDRrootAddress $EDR_Address -client_id $cred.client_id -client_secret $cred.client_secret
+$token = get-EdrAccessToken -EDR_API_config $EDR_APIconfig
 
 
 $headers = @{
@@ -140,7 +150,7 @@ $responsePOST.Content
 #>
                                                             
 
-$token = get-EdrAccessToken -EDRrootAddress $EDR_Address -client_id $cred.client_id -client_secret $cred.client_secret
+$token = get-EdrAccessToken -EDR_API_config $EDR_APIconfig
 
 
 $headers = @{
